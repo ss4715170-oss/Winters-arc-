@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Winter Arc — 1 Oct 2026 → 28 Feb 2027</title>
+<style>
+:root{--bg:#0b0d12;--card:#141821;--card2:#1b202b;--text:#f4f6f8;--muted:#9da6b5;--line:#2a3140;--accent:#8bd3ff;--good:#70e1a1;--bad:#ff7b86}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#090b10,#10141d);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1000px;margin:auto;padding:24px 16px 50px}.hero{padding:18px 0 12px}.eyebrow{color:var(--accent);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px}.hero h1{font-size:clamp(30px,7vw,52px);margin:6px 0}.hero p{color:var(--muted);margin:0}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}.stat,.card{background:rgba(20,24,33,.92);border:1px solid var(--line);border-radius:16px;padding:16px}.stat b{display:block;font-size:25px}.stat span{color:var(--muted);font-size:12px}
+.card{margin-top:14px}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.date{font-size:22px;font-weight:800}.sub{color:var(--muted);font-size:13px;margin-top:3px}
+.progress{height:10px;background:#252b36;border-radius:99px;overflow:hidden;margin:14px 0}.bar{height:100%;background:var(--accent);width:0%;transition:.2s}
+.goals{display:grid;grid-template-columns:1fr 1fr;gap:10px}.goal{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line);padding:12px;border-radius:13px}
+.goal input{display:none}.goal label{cursor:pointer;display:flex;align-items:center;gap:10px;width:100%}.box{width:25px;height:25px;border:2px solid #586274;border-radius:8px;display:grid;place-items:center;flex:none}.goal input:checked+label .box{background:var(--good);border-color:var(--good);color:#07130c}.goal input:checked+label .box:after{content:"✓";font-weight:900}.goal input:checked+label .name{text-decoration:line-through;color:#8d98a8}.name{font-weight:650}.controls{display:flex;gap:8px;flex-wrap:wrap}.btn,select{background:#1a202b;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer}.btn:hover{border-color:#566176}
+.nav{display:flex;gap:8px;align-items:center}.nav button{font-size:20px;padding:7px 13px}.note{width:100%;min-height:80px;background:#0e1219;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.day{font-size:11px;color:var(--muted);text-align:center;padding:5px}.cell{min-height:45px;background:#181d27;border:1px solid var(--line);border-radius:8px;padding:5px;text-align:center;cursor:pointer;font-size:12px}.cell.active{outline:2px solid var(--accent)}.cell.done{background:#163024;border-color:#2c7952}.cell.partial{background:#332d17}.cell b{display:block;font-size:13px}.small{font-size:11px;color:var(--muted)}
+footer{color:var(--muted);text-align:center;font-size:12px;margin-top:25px}
+@media(max-width:650px){.grid{grid-template-columns:1fr 1fr}.goals{grid-template-columns:1fr}.wrap{padding:18px 12px 40px}.stat b{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">151 Day Challenge</div>
+    <h1>❄️ Winter Arc</h1>
+    <p>1 October 2026 — 28 February 2027</p>
+  </section>
+
+  <div class="grid">
+    <div class="stat"><b id="dayNum">1/151</b><span>Current day</span></div>
+    <div class="stat"><b id="score">0%</b><span>Today's score</span></div>
+    <div class="stat"><b id="streak">0 🔥</b><span>Current streak</span></div>
+    <div class="stat"><b id="overall">0%</b><span>Overall completion</span></div>
+  </div>
+
+  <section class="card">
+    <div class="row">
+      <div><div class="date" id="dateTitle"></div><div class="sub" id="dateSub"></div></div>
+      <div class="nav"><button class="btn" id="prev">‹</button><button class="btn" id="today">Today</button><button class="btn" id="next">›</button></div>
+    </div>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="goals" id="goals"></div>
+    <div style="margin-top:14px"><div class="sub" style="margin-bottom:6px">Daily note</div><textarea id="note" class="note" placeholder="How did today go?"></textarea></div>
+  </section>
+
+  <section class="card">
+    <div class="row"><div><b>Month overview</b><div class="sub">Tap a date to open it</div></div><select id="month"></select></div>
+    <div class="calendar" id="calendar" style="margin-top:12px"></div>
+  </section>
+
+  <section class="card">
+    <div class="row"><b>My goals</b><button class="btn" id="reset">Reset current day</button></div>
+    <p class="sub">Your data is saved automatically on this device/browser.</p>
+  </section>
+
+  <footer>Consistency > perfection. If you miss a day, just continue the next day. ❄️</footer>
+</div>
+
+<script>
+const START=new Date(2026,9,1), END=new Date(2027,1,28);
+const goals=[
+ ["wake","Wake up on time"],["bed","Sleep 7–9 hours"],["move","Workout / movement"],["steps","Daily walk / steps"],
+ ["study","Study / focused work"],["skill","Practice one skill"],["food","Eat balanced meals"],["water","Drink enough water"],
+ ["scroll","Control unnecessary scrolling"],["groom","Hygiene / grooming"],["room","Keep room organized"],["journal","Journal / plan tomorrow"]
+];
+const key=d=>d.toISOString().slice(0,10);
+const add=(d,n)=>{let x=new Date(d);x.setDate(x.getDate()+n);return x};
+const valid=d=>d>=START&&d<=END;
+const storageKey=d=>"winterarc-"+key(d);
+let current=new Date(); current.setHours(0,0,0,0);
+if(!valid(current)) current=new Date(START);
+let selected=new Date(current);
+
+function load(d){return JSON.parse(localStorage.getItem(storageKey(d))||'{"checks":{},"note":""}')}
+function save(d,data){localStorage.setItem(storageKey(d),JSON.stringify(data))}
+function fmt(d){return d.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
+function render(){
+ const data=load(selected);
+ document.getElementById("dateTitle").textContent=fmt(selected);
+ const n=Math.round((selected-START)/86400000)+1;
+ document.getElementById("dayNum").textContent=n+"/151";
+ document.getElementById("dateSub").textContent="Day "+n+" of your Winter Arc";
+ const done=goals.filter(g=>data.checks[g[0]]).length, pct=Math.round(done/goals.length*100);
+ document.getElementById("score").textContent=pct+"%"; document.getElementById("bar").style.width=pct+"%";
+ const box=document.getElementById("goals");box.innerHTML="";
+ goals.forEach(([id,name])=>{
+   const div=document.createElement("div");div.className="goal";
+   div.innerHTML=`<input id="${id}" type="checkbox" ${data.checks[id]?"checked":""}><label for="${id}"><span class="box"></span><span class="name">${name}</span></label>`;
+   div.querySelector("input").onchange=e=>{const x=load(selected);x.checks[id]=e.target.checked;save(selected,x);render()};
+   box.appendChild(div);
+ });
+ const note=document.getElementById("note");note.value=data.note;
+ note.oninput=()=>{const x=load(selected);x.note=note.value;save(selected,x)};
+ updateStats();renderCalendar();
+}
+function allDates(){let a=[];for(let d=new Date(START);d<=END;d=add(d,1))a.push(new Date(d));return a}
+function dayPct(d){let x=load(d);return goals.filter(g=>x.checks[g[0]]).length/goals.length}
+function updateStats(){
+ let dates=allDates(), total=dates.reduce((s,d)=>s+dayPct(d),0);
+ document.getElementById("overall").textContent=Math.round(total/dates.length*100)+"%";
+ let s=0,d=new Date(selected);
+ while(valid(d)&&dayPct(d)>=1){s++;d=add(d,-1)}
+ document.getElementById("streak").textContent=s+" 🔥";
+}
+function renderCalendar(){
+ const sel=document.getElementById("month"), y=+sel.value.split("-")[0],m=+sel.value.split("-")[1];
+ const cal=document.getElementById("calendar");cal.innerHTML="";
+ ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(x=>{let e=document.createElement("div");e.className="day";e.textContent=x;cal.appendChild(e)});
+ const first=new Date(y,m,1), last=new Date(y,m+1,0);
+ for(let i=0;i<first.getDay();i++)cal.appendChild(document.createElement("div"));
+ for(let d=1;d<=last.getDate();d++){
+   let date=new Date(y,m,d),e=document.createElement("div");e.className="cell";
+   if(!valid(date))e.style.opacity=".3";
+   let p=dayPct(date); if(p===1)e.classList.add("done"); else if(p>0)e.classList.add("partial");
+   if(key(date)===key(selected))e.classList.add("active");
+   e.innerHTML=`<b>${d}</b><span class="small">${Math.round(p*100)}%</span>`;
+   e.onclick=()=>{if(valid(date)){selected=date;render()}};
+   cal.appendChild(e);
+ }
+}
+function populateMonths(){
+ const sel=document.getElementById("month");
+ for(let d=new Date(START);d<=END;d=new Date(d.getFullYear(),d.getMonth()+1,1)){
+   let v=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"),o=document.createElement("option");o.value=v;o.textContent=d.toLocaleDateString(undefined,{month:"long",year:"numeric"});sel.appendChild(o);
+ }
+ sel.onchange=renderCalendar;
+}
+document.getElementById("prev").onclick=()=>{let d=add(selected,-1);if(valid(d)){selected=d;render()}};
+document.getElementById("next").onclick=()=>{let d=add(selected,1);if(valid(d)){selected=d;render()}};
+document.getElementById("today").onclick=()=>{let d=new Date();d.setHours(0,0,0,0);selected=valid(d)?d:START;render()};
+document.getElementById("reset").onclick=()=>{if(confirm("Reset all checks and the note for this day?")){localStorage.removeItem(storageKey(selected));render()}};
+populateMonths(); document.getElementById("month").value=selected.getFullYear()+"-"+String(selected.getMonth()+1).padStart(2,"0"); render();
+</script>
+</body>
+</html>
